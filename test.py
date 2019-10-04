@@ -4,7 +4,7 @@ def main():
     grm = Grammar()
     
     grm.load_def("dotted_name: 'name'=IDENT 'list'=*('.' 'name'=IDENT)") # a.b.c
-    grm.load_def("assign: 'name_a'=dotted_name '=' 'name_b'=dotted_name") # a.b.c
+    grm.load_def("assign: 'name_a'=dotted_name '=' 'name_b'=dotted_name") # a.b.c = d.e.f
     
     data = {}
     grm.set_line("a.b.c")
