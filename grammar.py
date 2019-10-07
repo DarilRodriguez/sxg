@@ -173,6 +173,23 @@ class Grammar:
             
             return False
         
+        elif gnode.type == GNode.OPT:
+            data['__type__'] = "value"
+            data['value'] = None
+            
+            for t in gnode.childs:
+                info = {}
+                if self._execute_gnode(t, info):
+                    if info.has_key("__type__") and info['__type__'] == "value":
+                        data['value'] = info["value"]
+                    
+                    else:
+                        data["value"] = info
+                    
+                    return True
+            
+            return True
+        
         return False
     
     def _check(self, def_name, data):
@@ -299,24 +316,32 @@ class GDefReader:
         
         return False
     
-    def _load(self):
+    def _load(self, log_all=True):
         ret = self.grm._ident()
         
         if ret:
             self.root.key = ret
         else:
-            raise Exception("GRAMMAR: Expected IDENT at %i:%i" %(
-                self.line_number,
-                self.grm._next_tok().pos
-            ))
+            if log_all:
+                raise Exception("GRAMMAR: Expected IDENT at %i:%i" %(
+                    self.line_number,
+                    self.grm._next_tok().pos
+                ))
+            
+            else:
+                return False
         
         ret = self.grm._next_token_type(Token.COLON)
         
         if not ret:
-            raise Exception("GRAMMAR: Expected COLON(':') at %i:%i" %(
-                self.line_number,
-                self.grm._next_tok().pos
-            ))
+            if log_all:
+                raise Exception("GRAMMAR: Expected COLON(':') at %i:%i" %(
+                    self.line_number,
+                    self.grm._next_tok().pos
+                ))
+            
+            else:
+                return False
         
         ret = self._next_gnode()
         while ret != False:
@@ -329,5 +354,5 @@ class GDefReader:
     def parse(line, line_number=0):
         gdr = GDefReader(line)
         gdr.line_number = line_number
-        gdr._load()
+        gdr._load(False)
         return gdr.root
