@@ -158,6 +158,7 @@ class Grammar:
         
         elif gnode.type == GNode.COND:
             info = {}
+            pos = self.pos
             ret = self._execute_gnode(GNode(GNode.NONE, gnode.childs), info)
             
             if ret:
@@ -171,6 +172,7 @@ class Grammar:
                 
                 return True
             
+            self.pos = pos
             return False
         
         elif gnode.type == GNode.OPT:
@@ -207,6 +209,7 @@ class Grammar:
     
     def parse(self, def_name, data):
         if def_name in self.defs.keys():
+            data["__name__"] = def_name
             return self._execute_gnode(self.defs[def_name], data)
             
         else:
@@ -269,40 +272,50 @@ class GDefReader:
         elif tok == Token.LPAREN:
             lst = []
             
-            vtok = self.grm.next_tok()
-            while vtok != Token.RPAREN:
-                lst.append(vtok)
-                vtok = self.grm.next_tok()
+            gn = self._next_gnode()
+            while gn != False and gn != -2:
+                lst.append(gn)
+                if gn == -2:
+                    raise Exception("GRAMMAR: Unexpected ')' at %i:%i" %(
+                        self.line_number,
+                        self.grm._next_tok().pos
+                    ))
+                if gn == -3:
+                    raise Exception("GRAMMAR: Unexpected ']' at %i:%i" %(
+                        self.line_number,
+                        self.grm._next_tok().pos
+                    ))
+				
+                gn = self._next_gnode()
             
-            gdr = GDefReader("")
-            gdr.grm.list = lst
-            gdr.line_number = self.line_number
-            
-            ret = gdr._next_gnode()
-            while ret != False:
-                gdr.root.childs.append(ret)
-                ret = gdr._next_gnode()
-            
-            return GNode(GNode.COND, gdr.root.childs)
-        
+            return GNode(GNode.COND, lst)
+		
+        elif tok == Token.RPAREN:
+            return -2
+		
+        elif tok == Token.RBRACK:
+            return -3
+		
         elif tok == Token.LBRACK:
             lst = []
             
-            vtok = self.grm.next_tok()
-            while vtok != Token.RBRACK:
-                lst.append(vtok)
-                vtok = self.grm.next_tok()
+            gn = self._next_gnode()
+            while gn != False and gn != -3:
+                lst.append(gn)
+                if gn == -2:
+                    raise Exception("GRAMMAR: Unexpected ')' at %i:%i" %(
+                        self.line_number,
+                        self.grm._next_tok().pos
+                    ))
+                if gn == -3:
+                    raise Exception("GRAMMAR: Unexpected ']' at %i:%i" %(
+                        self.line_number,
+                        self.grm._next_tok().pos
+                    ))
+				
+                gn = self._next_gnode()
             
-            gdr = GDefReader("")
-            gdr.grm.list = lst
-            gdr.line_number = self.line_number
-            
-            ret = gdr._next_gnode()
-            while ret != False:
-                gdr.root.childs.append(ret)
-                ret = gdr._next_gnode()
-            
-            return GNode(GNode.OPT, gdr.root.childs)
+            return GNode(GNode.OPT, lst)
         
         elif tok == Token.EOL:
             return False
@@ -345,8 +358,14 @@ class GDefReader:
         
         ret = self._next_gnode()
         while ret != False:
-            self.root.childs.append(ret)
-            ret = self._next_gnode()
+			if ret == -2:
+			    raise Exception("GRAMMAR: Unexpected sym at %i:%i" %(
+			        self.line_number,
+			        self.grm._next_tok().pos
+			    ))
+			
+			self.root.childs.append(ret)
+			ret = self._next_gnode()
         
         return self.root
     
