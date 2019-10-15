@@ -138,7 +138,11 @@ class Grammar:
                 
                 if ret:
                     if info.has_key("__type__") and info["__type__"] == "value":
-                        data["value"].append(info["value"])
+                        if info["value"] == None:
+                            stop = True
+                        
+                        else:
+                            data["value"].append(info["value"])
                 
                 else:
                     break
@@ -208,9 +212,15 @@ class Grammar:
         return False
     
     def parse(self, def_name, data):
+        pos = self.pos
         if def_name in self.defs.keys():
             data["__name__"] = def_name
-            return self._execute_gnode(self.defs[def_name], data)
+            ret = self._execute_gnode(self.defs[def_name], data)
+            
+            if not ret:
+                self.pos = pos
+            
+            return ret
             
         else:
             print "GRAMMAR: '%s' not defined" %def_name
@@ -285,17 +295,17 @@ class GDefReader:
                         self.line_number,
                         self.grm._next_tok().pos
                     ))
-				
+                
                 gn = self._next_gnode()
             
             return GNode(GNode.COND, lst)
-		
+        
         elif tok == Token.RPAREN:
             return -2
-		
+        
         elif tok == Token.RBRACK:
             return -3
-		
+        
         elif tok == Token.LBRACK:
             lst = []
             
@@ -312,7 +322,7 @@ class GDefReader:
                         self.line_number,
                         self.grm._next_tok().pos
                     ))
-				
+                
                 gn = self._next_gnode()
             
             return GNode(GNode.OPT, lst)
@@ -358,14 +368,14 @@ class GDefReader:
         
         ret = self._next_gnode()
         while ret != False:
-			if ret == -2:
-			    raise Exception("GRAMMAR: Unexpected sym at %i:%i" %(
-			        self.line_number,
-			        self.grm._next_tok().pos
-			    ))
-			
-			self.root.childs.append(ret)
-			ret = self._next_gnode()
+            if ret == -2:
+                raise Exception("GRAMMAR: Unexpected sym at %i:%i" %(
+                    self.line_number,
+                    self.grm._next_tok().pos
+                ))
+            
+            self.root.childs.append(ret)
+            ret = self._next_gnode()
         
         return self.root
     

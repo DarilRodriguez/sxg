@@ -251,7 +251,7 @@ class TokenScanner:
         
         elif lit == "#":
             tok = Token(type=Token.COMMENT, literal=self.line[self.pos:])
-            #self.pos = len(self.line)
+            self.pos = len(self.line)
 		
         elif lit in self.eol:
             tok = Token(type=Token.EOL, literal=lit)
@@ -267,7 +267,8 @@ class Lexer:
         
         tok = scan.next()
         while tok != Token.EOL:
-            out.append(tok)
+            if tok != Token.COMMENT:
+				out.append(tok)
             tok = scan.next()
         
         return out
