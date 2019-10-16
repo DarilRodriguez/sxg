@@ -26,6 +26,7 @@ class ExpressionAnalyzer:
                             self.gscan.pos += 1
                             lst = []
                             next = self.get_next()
+                            
                             while next != None and next != "RPAREN":
                                 lst.append(next)
                                 next = self.get_next()
