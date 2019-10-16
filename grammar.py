@@ -138,8 +138,13 @@ class Grammar:
                 
                 if ret:
                     if info.has_key("__type__") and info["__type__"] == "value":
-                        data["value"].append(info["value"])
-                
+                        if info.has_key("__type__") and info["__type__"] == "value":
+                            if info["value"] == None:
+                                stop = True
+                            
+                            else:
+                                data["value"].append(info["value"])
+                    
                 else:
                     break
             
@@ -208,9 +213,15 @@ class Grammar:
         return False
     
     def parse(self, def_name, data):
+        pos = self.pos
         if def_name in self.defs.keys():
             data["__name__"] = def_name
-            return self._execute_gnode(self.defs[def_name], data)
+            ret = self._execute_gnode(self.defs[def_name], data)
+            
+            if not ret:
+                pos = self.pos
+            
+            return ret
             
         else:
             print "GRAMMAR: '%s' not defined" %def_name
