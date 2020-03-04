@@ -13,5 +13,5 @@ grm = sxg.Grammar() # Instance the grammar
 grm.load_def("def: 'ident'=IDENT")
 
 # Try to get the definition("def") in the line
-grm.parse_line("def", "identifier") # -> (True|False, {})
+grm.parse_line("def", "identifier") # -> (True|False, {"ident": "identifier"})
 ```
